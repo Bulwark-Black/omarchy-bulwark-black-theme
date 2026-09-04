@@ -293,19 +293,27 @@ def polyline(d):
 
 
 def subpath(pts, start, end):
-    """Points of the polyline between two distances along it."""
+    """Points of the polyline between two distances along it.
+
+    Order matters, and it used to be wrong. The cuts were appended before the
+    vertex that opens their segment, which put the far cut ahead of the corner
+    it belongs behind: the lit head ran diagonally across the corner and then
+    doubled back along it. Every trace on this board is right angles, so a
+    diagonal is the one line a comet can never legitimately draw. Emit the
+    opening vertex first, then whatever cut falls inside that segment.
+    """
     out, travelled = [], 0.0
     for i in range(len(pts) - 1):
         (x0, y0), (x1, y1) = pts[i], pts[i + 1]
         seg = abs(x1 - x0) + abs(y1 - y0)
         if seg == 0:
             continue
+        if start <= travelled <= end:
+            out.append((x0, y0))
         for edge in (start, end):
             if travelled < edge <= travelled + seg:
                 t = (edge - travelled) / seg
                 out.append((x0 + (x1 - x0) * t, y0 + (y1 - y0) * t))
-        if start <= travelled <= end:
-            out.append((x0, y0))
         travelled += seg
     if start <= travelled <= end:
         out.append(pts[-1])
