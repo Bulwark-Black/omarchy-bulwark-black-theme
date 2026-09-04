@@ -77,6 +77,24 @@ def build_comets(count, seed, width, height, scale):
     return comets
 
 
+def envelope(phase):
+    """The plugin's own fade, so a comet arrives and leaves the way it does live.
+
+    Background.qml calls it the epulse-fade: in fast, hold, dip, flicker, out.
+    Without it a comet snaps on at the start of its wire and snaps off at the
+    end, which is the tell that you are watching a loop rather than traffic.
+    """
+    if phase < 0.07:
+        return phase / 0.07
+    if phase < 0.68:
+        return 1.0
+    if phase < 0.82:
+        return 1.0 - (phase - 0.68) / 0.14 * 0.65
+    if phase < 0.88:
+        return 0.35 + (phase - 0.82) / 0.06 * 0.35
+    return max(0.0, 1.0 - (phase - 0.88) / 0.12)
+
+
 def draw_frame(tmp, base, width, height, comets, t, scale, out):
     """One frame: the four taper layers, screened over the still background."""
     stage = base
@@ -86,11 +104,19 @@ def draw_frame(tmp, base, width, height, comets, t, scale, out):
                "-stroke", colour, "-strokewidth", "%.2f" % sw, "-fill", "none"]
         drew = False
         for c in comets:
-            head = ((t * c["trips"]) + c["phase"]) % 1.0 * c["total"]
+            phase = ((t * c["trips"]) + c["phase"]) % 1.0
+            fade = envelope(phase)
+            if fade < 0.01:
+                continue
+            head = phase * c["total"]
             seg = mw.subpath(c["pts"], max(0.0, head - lit_frac * c["total"]), head)
             if len(seg) < 2:
                 continue
-            cmd += ["-draw", "polyline " + " ".join("%.1f,%.1f" % q for q in seg)]
+            # stroke-opacity is per-draw, so every comet carries its own point on
+            # the fade inside one canvas pass. Splitting them into separate passes
+            # would multiply the render by the comet count for the same picture.
+            cmd += ["-draw", "stroke-opacity %.4f polyline %s"
+                    % (fade, " ".join("%.1f,%.1f" % q for q in seg))]
             drew = True
         if not drew:
             continue
@@ -119,8 +145,15 @@ def main():
     ap.add_argument("--supersample", type=int, default=2, metavar="N",
                     help="draw at N x size then downscale, for clean thin strokes")
     ap.add_argument("--comets", type=int, default=18, metavar="N")
-    ap.add_argument("--frames", type=int, default=48, metavar="N")
-    ap.add_argument("--fps", type=int, default=24)
+    # Background.qml gives each comet 2800 + rand(3700) ms for a whole wire,
+    # divided by the speed slider, which ships at 0.55 -- so a real comet takes
+    # 5.1s to 11.8s to cross. A comet here does one or two whole trips per clip,
+    # so an 11s clip puts both 11s and 5.5s inside that range. Shorter clips
+    # cannot: at 8s the two-trip comets run at 4s, faster than the plugin's
+    # quickest, and the whole thing reads as a screensaver.
+    ap.add_argument("--seconds", type=float, default=11.0, metavar="S",
+                    help="clip length; keep it near the plugin's own 5-12s crossing")
+    ap.add_argument("--fps", type=int, default=12)
     ap.add_argument("--quality", type=int, default=72, help="webp quality")
     ap.add_argument("--seed", type=int, default=3)
     ap.add_argument("-o", "--out", default="preview-anim.webp")
@@ -132,8 +165,11 @@ def main():
         die("background not found: " + a.background)
     if not 1 <= a.comets <= 48:
         die("--comets must be between 1 and 48")
-    if not 2 <= a.frames <= 240:
-        die("--frames must be between 2 and 240")
+    if not 1.0 <= a.seconds <= 30.0:
+        die("--seconds must be between 1 and 30")
+    if not 4 <= a.fps <= 30:
+        die("--fps must be between 4 and 30")
+    a.frames = max(2, int(round(a.seconds * a.fps)))
     if not 1 <= a.supersample <= 4:
         die("--supersample must be between 1 and 4")
 
@@ -172,8 +208,8 @@ def main():
                 "-quality", str(a.quality), a.out])
 
     size = os.path.getsize(a.out)
-    print("wrote %s (%dx%d, %d frames, %.1f KB)"
-          % (a.out, W, H, a.frames, size / 1024.0))
+    print("wrote %s (%dx%d, %d frames, %.1fs loop, %.1f KB)"
+          % (a.out, W, H, a.frames, a.frames / float(a.fps), size / 1024.0))
 
 
 if __name__ == "__main__":
