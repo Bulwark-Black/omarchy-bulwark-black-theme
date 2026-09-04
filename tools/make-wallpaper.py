@@ -52,6 +52,34 @@ ACCENT_DEFAULT = "#e0b64d"
 # Matches colors.toml: background #18140c, with a warm lift at the centre.
 GRAD_INNER, GRAD_MID, GRAD_OUTER = "#211b10", "#18140c", "#0d0c07"
 
+# The shipped wallpaper is not a radial gradient and never was one. Its base is
+# a broad horizontal bell -- edges 0.82 of centre -- crossed with a vertical
+# falloff peaking at 0.44 of the frame height and dropping to 0.72 of that peak
+# at the top edge but 0.48 at the bottom. Nothing symmetric about the centre
+# fits that, which is why every radial tried, offset and elliptical alike,
+# bottomed out around three times the error of this. FIELD_HALF is that base read
+# off the art on a 9x7 control grid, with the emblem and its glow masked out and
+# the circuit pattern's own contribution taken back out, since the pattern goes
+# on top afterwards. Only the left half plus the centre column is stored: the
+# field is symmetric to within 0.1/255, and mirroring makes it exactly so.
+#
+# The values stay on the theme's own ramp -- corners on GRAD_OUTER, mid-field on
+# GRAD_MID, peak just under GRAD_INNER -- which is what GRAD_MID is for. It was
+# declared and unused for as long as the gradient was radial.
+FIELD_HALF = [
+    ("#110f09", "#13110a", "#15120b", "#17130c", "#17140c"),
+    ("#15130b", "#19150d", "#1b160e", "#1b160e", "#1c170e"),
+    ("#18140d", "#1b160e", "#1c170e", "#1e180f", "#1e180f"),
+    ("#18140d", "#1a160e", "#1c170e", "#1e180f", "#1e190f"),
+    ("#16130c", "#19150d", "#1a150d", "#1c170e", "#1d170f"),
+    ("#121009", "#14120b", "#16130c", "#17140c", "#18140c"),
+    ("#0e0c07", "#0f0d08", "#100e09", "#110f09", "#110f09"),
+]
+FIELD_FILTER = "Catrom"   # interpolating: the render passes through the stored
+                          # values, so the constant above IS the measured field
+
+REFERENCE_WIDTH = 3840    # the width the field and the tiling were measured at
+
 TILE_UNITS = 320          # circuit-pattern.svg viewBox
 PATTERN_SCALE = 1.4       # 320 * 1.4 = 448px tile at 4K; matches the site at 1x
 
@@ -284,6 +312,40 @@ def subpath(pts, start, end):
     return out
 
 
+def field_base(tmp, W, H, out):
+    """Render the stored control grid as the full-size base field.
+
+    The grid samples cell centres, so resizing it straight to the frame would
+    clamp the outer half-cell flat and flatten the edges. A one-cell ring of
+    linear extrapolation, rendered oversize and cropped back, carries the field
+    out to the frame edge instead. Everything is a fraction of the frame, so it
+    scales: built at 640, 1200 and 3840 wide, the same fractional coordinate
+    reads the same value to within 0.02/255.
+    """
+    rows = [[tuple(int(c[i:i + 2], 16) for i in (1, 3, 5))
+             for c in half + half[-2::-1]] for half in FIELD_HALF]
+    R, C = len(rows), len(rows[0])
+
+    def extend(a, b):
+        return tuple(2 * a[k] - b[k] for k in range(3))
+
+    grid = [[extend(r[0], r[1])] + list(r) + [extend(r[-1], r[-2])] for r in rows]
+    grid = ([[extend(grid[0][i], grid[1][i]) for i in range(C + 2)]] + grid +
+            [[extend(grid[-1][i], grid[-2][i]) for i in range(C + 2)]])
+
+    ppm = os.path.join(tmp, "field.ppm")
+    with open(ppm, "w") as f:
+        f.write("P3\n%d %d\n255\n" % (C + 2, R + 2))
+        f.write(" ".join("%d %d %d" % tuple(max(0, min(255, v)) for v in px)
+                         for row in grid for px in row))
+
+    bx, by = round(W / C), round(H / R)   # one cell of border on every side
+    run(["magick", ppm, "-filter", FIELD_FILTER,
+         "-resize", "%dx%d!" % (W + 2 * bx, H + 2 * by),
+         "-crop", "%dx%d+%d+%d" % (W, H, bx, by), "+repage", "-depth", "16", out])
+    return out
+
+
 def draw_comets(tmp, base, width, height, count, seed):
     """Draw all comets, one full-canvas pass per layer rather than per comet.
 
@@ -399,7 +461,8 @@ def main():
         # logo actually changes. Cache that layer so resizing a logo is quick.
         key = hashlib.sha1(("|".join(str(v) for v in (
             W, H, a.pattern_opacity, a.comets, a.seed,
-            GRAD_INNER, GRAD_MID, GRAD_OUTER, PATTERN_SCALE))).encode()).hexdigest()[:16]
+            GRAD_INNER, GRAD_MID, GRAD_OUTER, PATTERN_SCALE,
+            FIELD_HALF, FIELD_FILTER))).encode()).hexdigest()[:16]
         cache_dir = os.path.join(
             os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")),
             "bulwark-black")
@@ -407,17 +470,34 @@ def main():
 
         if a.no_cache or not os.path.isfile(cached):
             base = os.path.join(tmp, "base.png")
-            run(["magick", "-size", "%dx%d" % (W, H),
-                 "radial-gradient:%s-%s" % (GRAD_INNER, GRAD_OUTER), base])
+            field_base(tmp, W, H, base)
 
-            tile = max(8, int(TILE_UNITS * PATTERN_SCALE * (W / 3840.0)))
+            # The circuit sits on a field measured from the 4K art with this
+            # exact tiling, so it has to land in the same place at every size.
+            # Deriving the tile from the output width truncates -- 74.667 to 74
+            # at 640 wide -- and that lost fraction accumulates across the frame
+            # until the two combs beat against each other and the circuit no
+            # longer registers with the field it was fitted to. Under the
+            # reference width, tile at the reference and scale the finished
+            # layer: an identity at 4K, and registered everywhere below it.
+            if W < REFERENCE_WIDTH:
+                pat_w = REFERENCE_WIDTH
+                pat_h = max(1, round(H * REFERENCE_WIDTH / float(W)))
+                tile = int(TILE_UNITS * PATTERN_SCALE)
+            else:
+                pat_w, pat_h = W, H
+                tile = max(8, round(TILE_UNITS * PATTERN_SCALE *
+                                    (W / float(REFERENCE_WIDTH))))
             tile_png = os.path.join(tmp, "tile.png")
             run(["magick", "-background", "none", "-density", "384", pattern_svg,
                  "-resize", "%dx%d!" % (tile, tile), tile_png])
             tiled = os.path.join(tmp, "tiled.png")
-            run(["magick", "-size", "%dx%d" % (W, H), "tile:" + tile_png,
-                 "-alpha", "set", "-channel", "A", "-evaluate", "multiply",
-                 str(a.pattern_opacity), "+channel", tiled])
+            tile_cmd = ["magick", "-size", "%dx%d" % (pat_w, pat_h),
+                        "tile:" + tile_png, "-alpha", "set", "-channel", "A",
+                        "-evaluate", "multiply", str(a.pattern_opacity), "+channel"]
+            if (pat_w, pat_h) != (W, H):
+                tile_cmd += ["-resize", "%dx%d!" % (W, H)]
+            run(tile_cmd + [tiled])
             stage = os.path.join(tmp, "stage.png")
             run(["magick", base, tiled, "-compose", "Over", "-composite", stage])
 
@@ -426,7 +506,12 @@ def main():
 
             try:
                 os.makedirs(cache_dir, exist_ok=True)
-                run(["magick", stage, "-depth", "8", "-strip", cached])
+                # 16-bit, so a cached base is the same base the uncached run
+                # builds. field_base renders at 16; storing it at 8 quantised it
+                # and made `--no-cache` disagree with the cache by a level here
+                # and there -- enough that the shipped asset could not be
+                # reproduced byte-for-byte from a warm cache.
+                run(["magick", stage, "-depth", "16", "-strip", cached])
                 prune_cache(cache_dir, "base-", 4)
             except SystemExit:
                 pass  # a cache we cannot write is not worth failing over
