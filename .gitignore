@@ -1,2 +1,3 @@
 wallpaper.png
 *.tmp
+__pycache__/

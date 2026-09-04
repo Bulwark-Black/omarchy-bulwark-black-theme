@@ -55,6 +55,12 @@ GRAD_INNER, GRAD_MID, GRAD_OUTER = "#211b10", "#18140c", "#0d0c07"
 TILE_UNITS = 320          # circuit-pattern.svg viewBox
 PATTERN_SCALE = 1.4       # 320 * 1.4 = 448px tile at 4K; matches the site at 1x
 
+# One comet, drawn four times: a wide dim tail that the next three narrow onto,
+# ending in a near-white head. Widths are in pixels at 4K and scale from there.
+# (colour, strokewidth, opacity, blur, lit fraction of the trace)
+LAYERS = [("#a8842f", 14, 0.16, 6, 0.48), ("#e0b64d", 7, 0.40, 2, 0.32),
+          ("#f2c14e", 4, 0.90, 0, 0.16), ("#fff7e6", 3, 1.00, 0, 0.08)]
+
 TRACES = [
     "M0,60 L80,60 L80,90 L160,90 L160,60 L240,60 L240,30 L320,30",
     "M0,180 L40,180 L40,150 L130,150 L130,180 L210,180 L210,210 L320,210",
@@ -289,8 +295,6 @@ def draw_comets(tmp, base, width, height, count, seed):
     rng = random.Random(seed)
     step = TILE_UNITS * PATTERN_SCALE
     cols, rows = int(width // step) + 1, int(height // step) + 1
-    layers = [("#a8842f", 14, 0.16, 6, 0.48), ("#e0b64d", 7, 0.40, 2, 0.32),
-              ("#f2c14e", 4, 0.90, 0, 0.16), ("#fff7e6", 3, 1.00, 0, 0.08)]
 
     picks = []
     for _ in range(count):
@@ -302,7 +306,7 @@ def draw_comets(tmp, base, width, height, count, seed):
         picks.append((pts, total, rng.uniform(0.35, 0.95) * total))
 
     out = base
-    for colour, w, op, blur, lit_frac in layers:
+    for colour, w, op, blur, lit_frac in LAYERS:
         cmd = ["magick", "-size", "%dx%d" % (width, height), "xc:none",
                "-stroke", colour, "-strokewidth", str(w), "-fill", "none"]
         drew = False
