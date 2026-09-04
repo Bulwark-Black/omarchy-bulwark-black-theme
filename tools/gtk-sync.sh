@@ -7,7 +7,7 @@
 #
 # Installed as a theme-set hook, this reads whichever theme is current and
 # rewrites gtk.css to match, so GTK follows every theme rather than being
-# pinned to one:
+# pinned to one — light themes included:
 #
 #     omarchy hook install theme-set tools/gtk-sync.sh
 #
@@ -145,12 +145,39 @@ mkdir -p "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"
 gen_gtk4 >"$HOME/.config/gtk-4.0/gtk.css"
 gen_gtk3 >"$HOME/.config/gtk-3.0/gtk.css"
 
-# Dark variant + the theme's own icon set, so stock apps agree with the shell.
+# Which variant this theme wants. This hook runs after omarchy-theme-set-gnome
+# has already made the same decision, so ask the same oracle it does rather
+# than hardcoding dark and undoing its work on light themes: omarchy-theme-color
+# resolves mode from a `mode` key, a legacy light.mode marker beside
+# colors.toml, or background luminance for themes that declare neither.
+mode=""
+command -v omarchy-theme-color >/dev/null &&
+  mode="$(omarchy-theme-color --file "$COLORS" mode 2>/dev/null)"
+
+# Run outside Omarchy, or against a colors.toml it choked on: repeat its
+# luminance test on the background we already parsed. Channels summing past
+# 382 (half of 3x255) is a light theme; anything unparseable stays dark.
+if [[ -z ${mode:-} ]]; then
+  if [[ $bg =~ ^#[0-9A-Fa-f]{6}$ ]] && (( 16#${bg:1:2} + 16#${bg:3:2} + 16#${bg:5:2} > 382 )); then
+    mode="light"
+  else
+    mode="dark"
+  fi
+fi
+
+# That variant + the theme's own icon set, so stock apps agree with the shell.
 if command -v gsettings >/dev/null; then
-  gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null
-  gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark' 2>/dev/null
-  icons="$HOME/.local/state/omarchy/current/theme/icons.theme"
+  if [[ $mode == "light" ]]; then
+    gsettings set org.gnome.desktop.interface color-scheme 'prefer-light' 2>/dev/null
+    gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita' 2>/dev/null
+  else
+    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null
+    gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark' 2>/dev/null
+  fi
+  # Beside the colours we actually used, so a hand-run against another theme's
+  # colors.toml doesn't pair its palette with the staged theme's icons.
+  icons="$(dirname "$COLORS")/icons.theme"
   [[ -f $icons ]] && gsettings set org.gnome.desktop.interface icon-theme "$(<"$icons")" 2>/dev/null
 fi
 
-echo "GTK colours synced from $(basename "$(dirname "$COLORS")")"
+echo "GTK colours synced from $(basename "$(dirname "$COLORS")") ($mode)"
