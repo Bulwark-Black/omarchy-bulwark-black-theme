@@ -1,3 +1,16 @@
+---
+name: prepare-logo
+description: >
+  Prepare a logo or brand mark for the Bulwark Black theme's wallpaper generator,
+  which masks artwork by brightness x opacity and repaints whatever survives in one
+  flat accent colour. Use when swapping the wallpaper logo, when tools/logo-doctor.py
+  or tools/make-wallpaper.py rejects an image, or when a rendered logo comes out as a
+  coloured slab, a hollow shape, speckled along its edges, or a blob you cannot
+  identify. Triggers: logo, wallpaper, brand mark, logo-doctor, make-wallpaper,
+  set-logo, Comets widget, transparent background, mask, erode, silhouette,
+  "logo too small", "logo won't render", vector original SVG/PDF/AI/EPS.
+---
+
 # Preparing a Logo for the Bulwark Black Wallpaper
 
 The theme's wallpaper generator refuses artwork it cannot render well, rather
