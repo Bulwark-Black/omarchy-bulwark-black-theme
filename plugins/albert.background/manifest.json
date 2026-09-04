@@ -1,10 +1,11 @@
 {
   "schemaVersion": 1,
   "id": "albert.background",
-  "name": "My Background",
+  "name": "Bulwark Black Background",
   "version": "1.0.0",
-  "author": "Omarchy",
-  "description": "Desktop background renderer with click handling and transitions",
+  "author": "Bulwark Black LLC",
+  "license": "MIT",
+  "description": "Fork of Omarchy's background renderer that animates comets along the Bulwark Black wallpaper's circuit traces.",
   "kinds": [
     "service"
   ],
