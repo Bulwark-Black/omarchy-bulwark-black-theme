@@ -11,11 +11,27 @@
 # gates its live comets on that substring.
 set -uo pipefail
 
-THEME="$HOME/.config/omarchy/themes/bulwark-black"
+# The theme root is wherever this script is sitting — this file lives in the
+# theme's tools/, so ".." is the theme. Spelling the name out instead meant a
+# fork installed as themes/acme kept looking in themes/bulwark-black, and the
+# Comets buttons that launch this script discard stderr, so it failed in total
+# silence.
+THEME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GEN="$THEME/tools/make-wallpaper.py"
 PICK="$THEME/tools/pick-image.py"
 CFG="$HOME/.config/omarchy/bulwark-comets.json"
-OUTDIR="$HOME/.config/omarchy/backgrounds/bulwark-black"
+# Omarchy keys a theme's extra backgrounds on its installed directory name, so
+# that comes off the theme root too: a fork's rebuilds then land in the one
+# directory omarchy-theme-bg-next will index for it.
+OUTDIR="$HOME/.config/omarchy/backgrounds/$(basename "$THEME")"
+# The wallpaper --defaults goes back to. It has to be the STAGED copy, not the
+# one under themes/: omarchy-theme-bg-next builds its candidate list out of
+# ~/.local/state/omarchy/current/theme/backgrounds/ and OUTDIR only, so a
+# symlink into themes/ matches nothing it knows about and the first "next
+# background" press after a reset lands straight back on this same image. When
+# some other theme is staged this path does not exist, and the reset then
+# leaves that theme's wallpaper alone rather than hijacking it.
+SHIPPED_BG="$HOME/.local/state/omarchy/current/theme/backgrounds/01-circuit-4k.png"
 # Each rebuild gets a fresh filename. Writing the same path again is invisible
 # twice over: Background.qml returns early when the new path equals the current
 # one, and its base Image has cache:true so QML would serve the old bytes for an
@@ -53,7 +69,10 @@ PY
 case "${1:-}" in
   ""|--defaults|--rebuild) ;;
   -h|--help)
-    sed -n '2,12p' "$0" | sed 's/^# \?//'
+    # Everything from line 2 down to the first line that is not a comment. A
+    # fixed line range went stale the moment the header changed length and
+    # printed "set -uo pipefail" as if it were help.
+    sed -n '2,${ /^#/!q; s/^# \?//p; }' "$0"
     exit 0 ;;
   *)
     # Previously anything unrecognised fell through to the picker, so a typo
@@ -69,7 +88,7 @@ if [[ ${1:-} == --defaults ]]; then
   # removed rather than left behind, so the background cycler stops offering it.
   # Switch away first, then delete: the shell crossfades from the outgoing
   # wallpaper, and removing it first makes that load a file that is gone.
-  omarchy-theme-bg-set "$THEME/backgrounds/01-circuit-4k.png" >/dev/null 2>&1
+  omarchy-theme-bg-set "$SHIPPED_BG" >/dev/null 2>&1
   sleep 1
   sweep_customs
   python3 - "$CFG" "$THEME/tools/assets/logo.png" <<'PY'

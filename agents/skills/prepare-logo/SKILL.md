@@ -17,6 +17,12 @@ The theme's wallpaper generator refuses artwork it cannot render well, rather
 than producing something ugly. Your job is to turn the image the user actually
 wants into one it accepts, without silently degrading it.
 
+The theme installs at `~/.config/omarchy/themes/bulwark-black`, and its tools
+live in `tools/` beneath it. You are running from somewhere else — wherever the
+user started you, usually beside the image — so every command below spells the
+tool's path out in full and works from any directory. Leave the image where it
+is and pass its path.
+
 ## How the generator sees a logo
 
 This is the whole of it, and every rule below follows from it:
@@ -36,8 +42,11 @@ Colour in the source is discarded. Only luminance survives.
 ## Start with the doctor
 
 ```bash
-tools/logo-doctor.py <image>          # diagnose
-tools/logo-doctor.py <image> --fix    # repair, writes <image>-fixed.png
+# diagnose
+~/.config/omarchy/themes/bulwark-black/tools/logo-doctor.py <image>
+
+# repair, writes <image>-fixed.png
+~/.config/omarchy/themes/bulwark-black/tools/logo-doctor.py <image> --fix
 ```
 
 It repairs the three mechanical cases: a solid background (flood-filled from the
@@ -73,8 +82,8 @@ few hundred pixels on a dark field. Simplify, or accept that it will not read.
 Never hand back a logo you have not seen rendered:
 
 ```bash
-tools/make-wallpaper.py --logo <prepared> --size 1280x720 --logo-size 420 \
-    -o /tmp/logo-test.png
+~/.config/omarchy/themes/bulwark-black/tools/make-wallpaper.py \
+    --logo <prepared> --size 1280x720 --logo-size 420 -o /tmp/logo-test.png
 ```
 
 Open the result. Check for the things that pass validation but still look wrong:
@@ -93,12 +102,12 @@ cp <prepared> ~/.config/omarchy/themes/bulwark-black/tools/assets/<name>.png
 Then either pick it from the Comets widget in the bar, or:
 
 ```bash
-tools/set-logo.sh --rebuild
+~/.config/omarchy/themes/bulwark-black/tools/set-logo.sh --rebuild
 ```
 
 The wallpaper is written to `~/.config/omarchy/backgrounds/bulwark-black/`, so
-the theme's own branded wallpaper is never overwritten.
-`tools/set-logo.sh --defaults` puts everything back.
+the theme's own branded wallpaper is never overwritten. The same script with
+`--defaults` puts everything back.
 
 ## Be straight about the result
 

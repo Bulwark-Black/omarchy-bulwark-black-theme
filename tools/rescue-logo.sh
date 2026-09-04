@@ -8,7 +8,11 @@
 # consent; nothing is sent to an agent without it.
 set -uo pipefail
 
-THEME="$HOME/.config/omarchy/themes/bulwark-black"
+# Same derivation as set-logo.sh, which is what launches this: this file lives
+# in the theme's tools/, so ".." is the theme. A hardcoded bulwark-black sent a
+# fork at a doctor and a skill it does not have, and set-logo.sh runs this in
+# the background with its output thrown away, so nothing would have said so.
+THEME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOCTOR="$THEME/tools/logo-doctor.py"
 SKILL="$THEME/agents/skills/prepare-logo/SKILL.md"
 logo=${1:?usage: rescue-logo.sh <image>}

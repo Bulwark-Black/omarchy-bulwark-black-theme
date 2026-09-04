@@ -6,7 +6,13 @@ and a circuit-board wallpaper. Derived from the CSS custom properties of
 gold and the `#4fd1c5` teal are the site's own values, not an interpretation
 of them.
 
-![Bulwark Black](preview.webp)
+![Bulwark Black](preview-anim.webp)
+
+The comets above are the wallpaper's own, moving. They are drawn along the
+circuit traces by a bundled shell plugin — vector animation in Omarchy's
+own renderer, no video and no background daemon. The theme installs static;
+the motion is opt-in and documented under
+[Live comets and the logo picker](#live-comets-and-the-logo-picker-optional-plugins).
 
 ## Install
 
@@ -16,6 +22,17 @@ omarchy theme set "Bulwark Black"
 ```
 
 Or from the Omarchy menu: **Install → Style → Theme**, then paste the URL.
+
+That clones the theme into `~/.config/omarchy/themes/bulwark-black` and leaves
+your shell wherever it was, so every command below is written against that path
+rather than relative to it. Set it once per shell:
+
+```bash
+THEME=~/.config/omarchy/themes/bulwark-black
+```
+
+If you cloned the repo by hand instead, point `THEME` at your checkout — nothing
+below cares which one it is.
 
 ## What's in it
 
@@ -64,12 +81,12 @@ export EZA_COLORS="da=36:fi=36"
 
 ## Using your own logo
 
-The wallpaper ships with the Bulwark Black emblem. `tools/make-wallpaper.py`
-will rebuild it around your own mark, stripping it down and recolouring it to
-the accent so it sits *in* the palette rather than on top of it.
+The wallpaper ships with the Bulwark Black emblem. `make-wallpaper.py` will
+rebuild it around your own mark, stripping it down and recolouring it to the
+accent so it sits *in* the palette rather than on top of it.
 
 ```bash
-tools/make-wallpaper.py --logo mylogo.png -o mine.png
+$THEME/tools/make-wallpaper.py --logo mylogo.png -o mine.png
 omarchy theme bg set "$PWD/mine.png"
 ```
 
@@ -118,8 +135,8 @@ quietly producing something ugly. Every check has an explanation attached, and
 The generator is strict on purpose, but a rejection is not a dead end.
 
 ```bash
-tools/logo-doctor.py mylogo.png          # what is wrong
-tools/logo-doctor.py mylogo.png --fix    # repair it
+$THEME/tools/logo-doctor.py mylogo.png          # what is wrong
+$THEME/tools/logo-doctor.py mylogo.png --fix    # repair it
 ```
 
 It repairs the three mechanical cases — a solid background (flood-filled from
@@ -137,7 +154,7 @@ until you do.** The agent receives a precise brief plus a skill describing how
 the generator treats a logo and what "good" means:
 
 ```bash
-agents/install.sh
+$THEME/agents/install.sh
 ```
 
 That symlinks `prepare-logo` into `~/.agents/skills`, `~/.claude/skills`,
@@ -154,7 +171,7 @@ It has no template for **bat**, which therefore stays on Monokai (bright pink an
 lime) no matter which theme you run. To fix that:
 
 ```bash
-bat/install.sh
+$THEME/bat/install.sh
 ```
 
 That installs `bat/Bulwark Black.tmTheme`, rebuilds bat's cache and sets it in
@@ -168,8 +185,8 @@ GTK template, so file managers and GNOME dialogs sit on stock Adwaita grey under
 every theme.
 
 ```bash
-omarchy hook install theme-set tools/gtk-sync.sh
-tools/gtk-sync.sh          # apply now
+omarchy hook install theme-set $THEME/tools/gtk-sync.sh
+$THEME/tools/gtk-sync.sh          # apply now
 ```
 
 That reads **whichever theme is current** and rewrites `~/.config/gtk-3.0/gtk.css`
@@ -183,7 +200,7 @@ Undo: `rm ~/.config/gtk-{3.0,4.0}/gtk.css` and delete the hook from
 ## Back to defaults
 
 ```bash
-tools/set-logo.sh --defaults
+$THEME/tools/set-logo.sh --defaults
 ```
 
 Restores the shipped Bulwark Black emblem, the branded wallpaper and the default
@@ -198,15 +215,15 @@ traces; reproducing that on the desktop needs a **shell plugin**, because Omarch
 renders backgrounds with QML `Image`, which shows only the first frame of an
 animated file.
 
-`omarchy theme install` does not carry plugins, so installing the theme alone
-gets you the static wallpaper and the CLI generator. For a hint of the motion
-without any plugin, bake some in:
+Omarchy loads plugins from `~/.config/omarchy/plugins/` and never from a theme,
+so installing the theme alone gets you the static wallpaper and the CLI
+generator. For a hint of the motion without any plugin, bake some in:
 
 ```bash
-tools/make-wallpaper.py --comets 12 -o mine.png
+$THEME/tools/make-wallpaper.py --comets 12 -o mine.png
 ```
 
-`plugins/` holds the two that add the real thing:
+`$THEME/plugins/` holds the two that add the real thing:
 
 | Plugin | What it adds |
 |---|---|
@@ -214,7 +231,7 @@ tools/make-wallpaper.py --comets 12 -o mine.png
 | `albert.comets` | Bar widget: speed, thickness, count, logo size, the logo picker, and reset-to-defaults. |
 
 The logo picker lives in that widget, so without it you swap logos from the
-command line instead (`tools/make-wallpaper.py --logo yours.png`).
+command line instead (`$THEME/tools/make-wallpaper.py --logo yours.png`).
 
 The fork is **purely additive** — it adds one block to Omarchy's `Background.qml`
 and removes nothing — so re-syncing after an update means re-applying that block
@@ -226,6 +243,49 @@ Omarchy's own background plugin. It will not receive upstream fixes to
 `/usr/share/omarchy/shell/plugins/background/Background.qml`. Rename the `albert.`
 prefix to your own username before use. This is the reason they are not part of
 the theme proper.
+
+### Installing them
+
+`omarchy plugin add` clones a repo and expects `manifest.json` at the root of
+it. These two sit in a subdirectory of the theme, so it cannot install them —
+the copy is done here instead:
+
+```bash
+$THEME/plugins/install.sh
+```
+
+That copies both into `~/.config/omarchy/plugins/` and enables them.
+`albert.background` stands in for Omarchy's own background plugin — that is
+what `clonedFrom` in its manifest asks for — and `albert.comets` takes a place
+on the right of the bar.
+
+To take them out again:
+
+```bash
+$THEME/plugins/uninstall.sh
+```
+
+That removes both and re-enables Omarchy's own background plugin.
+
+## Uninstall
+
+The scripts that undo the plugins and the agent skill live *inside* the theme,
+and `omarchy theme remove` deletes the directory they are in. So run them
+first:
+
+```bash
+$THEME/plugins/uninstall.sh
+$THEME/agents/uninstall.sh
+omarchy theme remove bulwark-black
+```
+
+Remove the theme first and you are left with a background plugin forked from a
+theme that no longer exists, Omarchy's own still disabled behind it, four
+dangling `prepare-logo` symlinks in the agent skill directories — and nothing
+on disk to undo any of it.
+
+The bat theme and the GTK hook install outside the theme directory and survive
+its removal; their undo lines are with the sections that install them.
 
 ## Related work
 
@@ -264,5 +324,5 @@ generator by Bulwark Black LLC.
 
 The **Bulwark Black name and emblem are trademarks** and are not covered by the
 licence below. Fork the palette and the generator freely; please swap the logo
-for your own (`tools/make-wallpaper.py --logo yours.png`) rather than shipping
-ours under another name.
+for your own (`$THEME/tools/make-wallpaper.py --logo yours.png`) rather than
+shipping ours under another name.
