@@ -229,10 +229,16 @@ the theme proper.
 
 ## Related work
 
-Animating an Omarchy background is well-trodden ground, and this theme is not
-the first to do it. If a different approach suits you better, these are worth
+Animating an Omarchy background is well-trodden ground. This theme is not the
+first to do it, and not the first to do it natively either. If a different approach suits you better, these are worth
 looking at:
 
+- [`WSeubring/omarchy-pokemon-theme`](https://github.com/WSeubring/omarchy-pokemon-theme)
+  — the closest prior art: a theme that ships its own declared fork of
+  `plugins/background/`, doing hand-rolled QtQuick ambient motion over the
+  wallpaper with no video and no daemon. The same architecture as this.
+- [`vinceferro/omarchy-universe-background`](https://github.com/vinceferro/omarchy-universe-background)
+  — native motion again, via a GLSL shader over a live webp.
 - [`0x1ocean/omarchy-omatrix`](https://github.com/0x1ocean/omarchy-omatrix) —
   procedural matrix rain, split into a plugin plus a theme, with a neat opt-in:
   the plugin only draws when the active theme ships an `omatrix.toml`. A cleaner
