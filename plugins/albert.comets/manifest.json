@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "albert.comets",
+  "name": "Comets",
+  "version": "1.0.0",
+  "author": "Albert",
+  "license": "MIT",
+  "description": "Adjust the travelling current on the Bulwark Black wallpaper.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Comets",
+    "description": "Speed, thickness and count for the wallpaper's travelling current.",
+    "category": "Appearance",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Bulwark Black for bat / delta / anything reading Sublime .tmTheme.
+
+  Omarchy ships templates for alacritty, ghostty, btop, helix, neovim, vscode
+  and the shell, but none for bat — so bat falls back to Monokai, whose pink
+  and lime clash badly with this palette. Colours below are colors.toml.
+
+  Install: bat/install.sh  (copies here, rebuilds bat's cache, writes config)
+-->
+<plist version="1.0">
+<dict>
+  <key>name</key><string>Bulwark Black</string>
+  <key>semanticClass</key><string>theme.dark.bulwark_black</string>
+  <key>uuid</key><string>7b2c1f4a-9d3e-4c8b-a1f6-2e5d8c0b4a91</string>
+  <key>colorSpaceName</key><string>sRGB</string>
+  <key>settings</key>
+  <array>
+
+    <dict>
+      <key>settings</key>
+      <dict>
+        <key>background</key><string>#18140C</string>
+        <key>foreground</key><string>#E6EDF3</string>
+        <key>caret</key><string>#E0B64D</string>
+        <key>lineHighlight</key><string>#272111</string>
+        <key>selection</key><string>#3B321C</string>
+        <key>invisibles</key><string>#655939</string>
+        <key>gutterForeground</key><string>#655939</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Comment</string>
+      <key>scope</key><string>comment, punctuation.definition.comment</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#655939</string>
+        <key>fontStyle</key><string>italic</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>String</string>
+      <key>scope</key><string>string, string.quoted, punctuation.definition.string</string>
+      <key>settings</key><dict><key>foreground</key><string>#8FB573</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Number, Boolean, Constant</string>
+      <key>scope</key><string>constant.numeric, constant.language, constant.character</string>
+      <key>settings</key><dict><key>foreground</key><string>#D49C28</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Keyword, Storage</string>
+      <key>scope</key><string>keyword, storage, storage.type, keyword.control</string>
+      <key>settings</key><dict><key>foreground</key><string>#BD7FA8</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Operator</string>
+      <key>scope</key><string>keyword.operator, punctuation.separator, punctuation.terminator</string>
+      <key>settings</key><dict><key>foreground</key><string>#AB9F82</string></dict>
+    </dict>
+
+    <!-- Functions take the brand gold: it is the colour the eye already tracks
+         in this palette, and function names are what you scan code for. -->
+    <dict>
+      <key>name</key><string>Function</string>
+      <key>scope</key><string>entity.name.function, support.function, meta.function-call</string>
+      <key>settings</key><dict><key>foreground</key><string>#E0B64D</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Type, Class</string>
+      <key>scope</key><string>entity.name.type, entity.name.class, support.type, support.class, storage.type.class</string>
+      <key>settings</key><dict><key>foreground</key><string>#4FD1C5</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Variable, Parameter</string>
+      <key>scope</key><string>variable, variable.other, variable.parameter</string>
+      <key>settings</key><dict><key>foreground</key><string>#E6EDF3</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Variable member / property</string>
+      <key>scope</key><string>variable.other.member, meta.object-literal.key, support.variable.property</string>
+      <key>settings</key><dict><key>foreground</key><string>#C9D3DD</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Tag</string>
+      <key>scope</key><string>entity.name.tag, punctuation.definition.tag</string>
+      <key>settings</key><dict><key>foreground</key><string>#BD7FA8</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Attribute</string>
+      <key>scope</key><string>entity.other.attribute-name</string>
+      <key>settings</key><dict><key>foreground</key><string>#E0B64D</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Heading (markdown)</string>
+      <key>scope</key><string>markup.heading, entity.name.section</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#F2C14E</string>
+        <key>fontStyle</key><string>bold</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Link</string>
+      <key>scope</key><string>markup.underline.link, string.other.link</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#6FE0D5</string>
+        <key>fontStyle</key><string>underline</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Inserted (diff)</string>
+      <key>scope</key><string>markup.inserted, source.diff.inserted</string>
+      <key>settings</key><dict><key>foreground</key><string>#A8CC8A</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Deleted (diff)</string>
+      <key>scope</key><string>markup.deleted, source.diff.deleted</string>
+      <key>settings</key><dict><key>foreground</key><string>#F0705C</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Changed (diff)</string>
+      <key>scope</key><string>markup.changed, source.diff.changed</string>
+      <key>settings</key><dict><key>foreground</key><string>#E0B64D</string></dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Invalid</string>
+      <key>scope</key><string>invalid, invalid.illegal</string>
+      <key>settings</key><dict><key>foreground</key><string>#E05C4A</string></dict>
+    </dict>
+
+  </array>
+</dict>
+</plist>

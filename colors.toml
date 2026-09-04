@@ -1,0 +1,38 @@
+# Bulwark Black — derived from bulwarkblack.com
+#
+# The neutral axis carries the accent hue rather than being grey, the way
+# osaka-jade's carries its green: saturation rises with lightness, so the
+# darkest levels stay near-black while raised surfaces read warm gold.
+# Backgrounds, gold accent, teal "intel" accent and foregrounds are taken
+# directly from the site's dark-mode CSS custom properties.
+mode = "dark"
+
+accent = "#e0b64d"
+selection = "#3b321c"
+muted = "#655939"
+
+background = "#18140c"
+dark_background = "#13100a"
+darker_background = "#0d0c07"
+lighter_background = "#272111"
+
+foreground = "#e6edf3"
+dark_foreground = "#ab9f82"
+light_foreground = "#c9d3dd"
+bright_foreground = "#f5f8fb"
+
+red = "#e05c4a"
+yellow = "#e0b64d"
+orange = "#d49c28"
+green = "#8fb573"
+cyan = "#4fd1c5"
+blue = "#5c9ec7"
+magenta = "#bd7fa8"
+brown = "#a8842f"
+
+bright_red = "#f0705c"
+bright_yellow = "#f2c14e"
+bright_green = "#a8cc8a"
+bright_cyan = "#6fe0d5"
+bright_blue = "#7ab5dd"
+bright_magenta = "#d495bd"

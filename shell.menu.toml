@@ -1,0 +1,15 @@
+# Lifts this surface off flat black by ~5% toward the accent gold, matching
+# shell.popups.toml. Literal values: section overrides are applied after
+# template rendering, so revisit these if colors.toml changes.
+background                = "#201b0f"
+background-alpha          = 1.0
+text                      = "#e6edf3"
+border                    = "hyprland.active-border-foreground"
+border-alpha              = 1.0
+scrim                     = "#0a0906"
+scrim-alpha               = 0.5
+selected-background       = "#e6edf3"
+selected-background-alpha = 0.08
+selected-text             = "#e0b64d"
+selected-border           = "hyprland.active-border-foreground"
+selected-border-alpha     = 0.25

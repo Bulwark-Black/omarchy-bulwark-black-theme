@@ -1,0 +1,13 @@
+# Overrides the [popups] section of the generated shell.toml (spliced in by
+# omarchy-theme-set-templates). Bar flyouts — weather, audio, network, the
+# comets slider — otherwise take {{ background }} (#18140c) and read as flat
+# black. This is that same near-black lifted ~5% toward the accent gold, so the
+# cards sit slightly warm against the wallpaper instead of vanishing into it.
+#
+# Values are literal: section overrides are applied AFTER template rendering,
+# so if colors.toml changes, revisit this file too.
+background       = "#201b0f"
+background-alpha = 1.0
+text             = "#e6edf3"
+border           = "hyprland.active-border"
+border-alpha     = 1.0
